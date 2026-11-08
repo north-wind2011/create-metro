@@ -1,0 +1,42 @@
+# Gradle / 构建输出
+.gradle/
+build/
+run/
+*.log
+
+# 本地第三方依赖（别人的分发物，不随本仓库公开）
+libs/*.jar
+local-maven/
+META-INF/jarjar/
+
+# 从 Create / Minecraft 解包或反编译得到的参考物（不属于本模组源码）
+assets/
+tools/create-ref/
+tools/ponderjar/
+tools/jarjar-meta/
+tools/arrow-work/
+tools/Level.java
+tools/LevelChunk.java
+tools/DoorBlock.java
+tools/FaceBakery.java
+tools/BlockFaceUV.java
+tools/FaceInfo.java
+tools/out/
+tools/out2/
+tools/out3/
+tools/out-linker/
+tools/**/*.class
+tools/nfrt-launcher/neoform-runtime-launcher.jar
+tools/nfrt-launcher/classes/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# 系统
+Thumbs.db
+.DS_Store

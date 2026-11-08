@@ -1,0 +1,102 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev' version '2.0.78'
+}
+
+group = 'com.createmetro'
+version = '0.1.0'
+base {
+    archivesName = 'create-metro'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    // 本地兜底仓库：存放上游镜像缺同步的极小构件（当前只有 minecraft-dependencies BOM）。
+    maven {
+        name = 'LocalFallback'
+        url = uri('local-maven')
+    }
+    // NeoForge / NeoForm / Minecraft 构件的可访问镜像（maven.neoforged.net 在当前网络不可达）
+    // NeoFormRuntime（ModDevGradle 的构建工具）在 BMCLAPI 上没有镜像，改用 Stellardrift 的
+    // NeoForged 仓库镜像；同时它也能代理 fabric-loom-native 等运行期依赖。
+    // 放在 BMCLAPI 之前：BMCLAPI 的部分文件会 302 到 download.mocdn.net，当前网络会连接重置。
+    maven {
+        name = 'Stellardrift'
+        url = 'https://repo.stellardrift.ca/maven/internal/'
+    }
+    maven {
+        name = 'BMCLAPI'
+        url = 'https://bmclapi2.bangbang93.com/maven/'
+    }
+    // Minecraft 官方库（brigadier、datafixerupper、lwjgl 等）
+    maven {
+        name = 'MinecraftLibraries'
+        url = 'https://libraries.minecraft.net/'
+    }
+    maven {
+        name = 'Create'
+        url = 'https://maven.createmod.net'
+    }
+    mavenCentral()
+}
+
+neoForge {
+    version = '21.1.219'
+
+    runs {
+        client {
+            client()
+            gameDirectory = file('run')
+            // 临时：启动直接进存档，便于自动化验证思索场景渲染
+            programArguments.addAll('--quickPlaySingleplayer', '新的世界')
+            // 仅当显式传 -Pselftest 时打开开发自检（进世界后自动摆门并验证联动/维护逻辑）
+            if (project.hasProperty('selftest')) {
+                systemProperty 'createmetro.selftest', 'true'
+            }
+        }
+        server {
+            server()
+            gameDirectory = file('run')
+        }
+    }
+
+    mods {
+        createmetro {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+dependencies {
+    // Create 在 run/mods 里以模组形式运行；这里仅用于编译 GUI 基类（AbstractSimiContainerScreen）。
+    compileOnly files('libs/create-1.21.1-6.0.11-320.jar')
+    // Ponder 1.0.85 由 Create 的 jarJar 内嵌，运行期不用额外安装；这里仅补编译期类型。
+    compileOnly files('libs/ponder-neoforge-1.0.85+mc1.21.1.jar')
+}
+
+// 当前网络访问不了 maven.neoforged.net，而 ModDevGradle 不会把 Maven 仓库参数透传给
+// NeoFormRuntime。这里改用 tools/nfrt-launcher 里包装过的 NFRT 启动器（预置了可访问的镜像）。
+// 重新生成该 jar：powershell -File tools/nfrt-launcher/build-launcher.ps1
+tasks.withType(net.neoforged.nfrtgradle.CreateMinecraftArtifacts).configureEach {
+    neoFormRuntime.setFrom(files('tools/nfrt-launcher/neoform-runtime-launcher.jar'))
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+jar {
+    manifest {
+        attributes([
+            'Specification-Title'   : 'Create Metro',
+            'Specification-Version' : project.version,
+            'Implementation-Title'  : 'Create Metro',
+            'Implementation-Version': project.version
+        ])
+    }
+}

@@ -1,0 +1,39 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+
+[[mods]]
+modId = "createmetro"
+version = "0.1.0"
+displayName = "Create Metro"
+description = '''Create（机械动力）的地铁拓展。加入两格高的站台屏蔽门（Platform Screen Door）：
+沿站台可连续拼接、开合时整扇门横向滑入墙体，并提供带有左向 / 右向箭头导向标识的两种外观变体；
+另加入屏蔽门联控器，可在半径 16 格内登记多扇屏蔽门并统一手动开/关（GUI 沿用 Create 的界面基类）。'''
+
+authors = "Create Metro contributors"
+
+# 列车门按“对应屏蔽门门位”拦截（Create 的 SlidingDoorMovementBehaviour#shouldOpen）。
+[[mixins]]
+config = "createmetro.mixins.json"
+
+[[dependencies.createmetro]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.219,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.createmetro]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1]"
+ordering = "NONE"
+side = "BOTH"
+
+# 联控器 GUI 直接继承 Create 的 AbstractSimiContainerScreen，因此必须依赖 Create。
+[[dependencies.createmetro]]
+modId = "create"
+type = "required"
+versionRange = "[6.0,)"
+ordering = "AFTER"
+side = "BOTH"

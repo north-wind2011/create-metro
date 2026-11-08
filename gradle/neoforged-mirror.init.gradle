@@ -1,0 +1,30 @@
+// 在无法访问 maven.neoforged.net 的网络环境中，把 Gradle 里 ModDevGradle 自动注入的
+// NeoForged Maven 仓库透明地重写到可访问的 Stellardrift 镜像。NeoForm 的 zip 在
+// Stellardrift 上没有镜像，但 build.gradle 里的 BMCLAPI 仓库会兜底。用法：
+//   gradlew build --init-script gradle/neoforged-mirror.init.gradle
+// 项目根目录下的 build.ps1 / build.sh 已自动带上该参数。
+def MIRROR = 'https://mirror4.nyist.edu.cn/bmclapi/'
+
+def rewrite = { repo ->
+    if (repo instanceof org.gradle.api.artifacts.repositories.MavenArtifactRepository) {
+        try {
+            def u = repo.url == null ? '' : repo.url.toString()
+            if (u.contains('maven.neoforged.net')) {
+                repo.url = MIRROR
+                repo.name = 'NeoForged-BMCLAPI-Mirror'
+            }
+        } catch (Exception ignored) {
+        }
+    }
+}
+
+gradle.settingsEvaluated { settings ->
+    settings.pluginManagement.repositories.all { rewrite(it) }
+}
+
+gradle.projectsLoaded { g ->
+    g.allprojects { p ->
+        p.buildscript.repositories.all { rewrite(it) }
+        p.repositories.all { rewrite(it) }
+    }
+}
